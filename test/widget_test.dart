@@ -1,30 +1,47 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:emad_task1/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('aggiunta, validazione, completamento ed eliminazione',
+      (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
+    expect(find.textContaining('Nessuna attività'), findsOneWidget);
+    expect(find.text('Completate: 0 / 0'), findsOneWidget);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
+    // Titolo mancante
     await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Conferma'));
     await tester.pump();
+    expect(find.text('Il titolo è obbligatorio'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Studiare');
+    await tester.pump();
+    expect(find.text('Il titolo è obbligatorio'), findsNothing);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Creazione
+    await tester.tap(find.text('Conferma'));
+    await tester.pumpAndSettle();
+    expect(find.text('Studiare'), findsOneWidget);
+    expect(find.text('Attività aggiunta'), findsOneWidget);
+
+    // Completamento
+    await tester.tap(find.text('Studiare'));
+    await tester.pump();
+    expect(find.text('Completate: 1 / 1'), findsOneWidget);
+
+    // Eliminazione: rinuncia poi conferma
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Annulla'));
+    await tester.pumpAndSettle();
+    expect(find.text('Studiare'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Elimina'));
+    await tester.pumpAndSettle();
+    expect(find.text('Studiare'), findsNothing);
+    expect(find.text('Completate: 0 / 0'), findsOneWidget);
   });
 }
